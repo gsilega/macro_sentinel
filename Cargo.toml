@@ -3,4 +3,59 @@ name = "macro_sentinel"
 version = "0.1.0"
 edition = "2024"
 
+# --- DEPENDENCY EXPLANATION ---
+# In Rust, external libraries are called "crates". You declare them here and
+# Cargo (Rust's build tool + package manager) downloads and compiles them.
+# Versions follow semver: "1" means "any 1.x.x compatible version".
+# Features listed in `features = [...]` opt-in to optional parts of a crate
+# that aren't compiled by default (keeps binary size smaller).
+
 [dependencies]
+
+# axum — the web framework. Handles HTTP routing, middleware, WebSockets.
+# "ws" feature enables WebSocket support.
+axum = { version = "0.7", features = ["ws"] }
+
+# tokio — the async runtime. Rust's async/await syntax needs a runtime to
+# actually execute futures. Tokio is the industry standard.
+# "full" enables all features: multi-threaded scheduler, timers, I/O, etc.
+tokio = { version = "1", features = ["full"] }
+
+# tower-http — middleware for axum. We use it to serve static files (HTML/JS).
+tower-http = { version = "0.5", features = ["fs", "cors"] }
+
+# serde — Rust's serialization/deserialization framework.
+# "derive" lets us use #[derive(Serialize, Deserialize)] on our structs.
+serde = { version = "1", features = ["derive"] }
+
+# serde_json — JSON support on top of serde.
+serde_json = "1"
+
+# reqwest — HTTP client for making outbound requests to FRED API and Claude API.
+# "json" feature adds serde_json integration so we can .json::<T>() responses.
+reqwest = { version = "0.12", features = ["json"] }
+
+# chrono — date/time handling. FRED returns observation dates as strings;
+# we parse them into proper date types for sorting and display.
+chrono = { version = "0.4", features = ["serde"] }
+
+# tracing — structured logging. Better than println! for async code because
+# it understands async spans (a "span" tracks a unit of work across await points).
+tracing = "0.1"
+
+# tracing-subscriber — actually outputs the tracing logs to stdout.
+tracing-subscriber = { version = "0.3", features = ["env-filter"] }
+
+# thiserror — makes writing custom error types much less boilerplate-heavy.
+# You'll see it in error.rs — it generates Display + Error trait impls for you.
+thiserror = "2"
+
+# anyhow — easy dynamic error propagation. Great for main() and places where
+# you don't need to inspect the error type, just propagate it.
+anyhow = "1"
+
+# uuid — for generating unique IDs for WebSocket connections
+uuid = { version = "1", features = ["v4"] }
+
+# tokio-stream — Stream utilities for async iteration with tokio
+tokio-stream = "0.1"

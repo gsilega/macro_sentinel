@@ -1,0 +1,660 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Macro Sentinel — Indicators</title>
+  <style>
+    :root {
+      --bg: #0d1117;
+      --surface: #161b22;
+      --surface-2: #1c2128;
+      --border: #30363d;
+      --text: #e6edf3;
+      --muted: #8b949e;
+      --hawkish: #f85149;
+      --hawkish-bg: rgba(248, 81, 73, 0.1);
+      --neutral: #e3b341;
+      --neutral-bg: rgba(227, 179, 65, 0.1);
+      --dovish: #3fb950;
+      --dovish-bg: rgba(63, 185, 80, 0.1);
+      --accent: #58a6ff;
+      --leading: #bc8cff;
+      --lagging: #79c0ff;
+      --coincident: #56d364;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      font-size: 14px;
+      line-height: 1.6;
+    }
+
+    nav {
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      padding: 0 24px;
+      display: flex;
+      align-items: center;
+      gap: 32px;
+      height: 52px;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+
+    .nav-brand { font-size: 16px; font-weight: 700; letter-spacing: -0.3px; }
+    .nav-brand span { color: var(--accent); }
+    nav a { color: var(--muted); text-decoration: none; font-size: 13px; padding: 4px 0; border-bottom: 2px solid transparent; transition: color 0.15s; }
+    nav a:hover { color: var(--text); }
+    nav a.active { color: var(--text); border-bottom-color: var(--accent); }
+
+    main {
+      max-width: 960px;
+      margin: 0 auto;
+      padding: 32px 24px;
+    }
+
+    .page-header {
+      margin-bottom: 32px;
+      padding-bottom: 24px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .page-header h1 {
+      font-size: 24px;
+      font-weight: 700;
+      margin-bottom: 8px;
+    }
+
+    .page-header p {
+      color: var(--muted);
+      font-size: 14px;
+      max-width: 600px;
+    }
+
+    /* Legend row */
+    .legend-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 20px;
+      margin-bottom: 32px;
+      padding: 16px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+    }
+
+    .legend-section {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .legend-title {
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: var(--muted);
+      margin-bottom: 2px;
+    }
+
+    .legend-items {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    .legend-item {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 12px;
+      color: var(--muted);
+    }
+
+    .pill {
+      padding: 2px 10px;
+      border-radius: 12px;
+      font-size: 11px;
+      font-weight: 600;
+    }
+
+    .pill.hawkish { background: var(--hawkish-bg); color: var(--hawkish); }
+    .pill.dovish  { background: var(--dovish-bg); color: var(--dovish); }
+    .pill.neutral { background: var(--neutral-bg); color: var(--neutral); }
+    .pill.leading    { background: rgba(188,140,255,0.12); color: var(--leading); }
+    .pill.lagging    { background: rgba(121,192,255,0.12); color: var(--lagging); }
+    .pill.coincident { background: rgba(86,211,100,0.12); color: var(--coincident); }
+
+    /* Group headers */
+    .group-header {
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: var(--muted);
+      margin: 32px 0 14px;
+      padding-bottom: 8px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    /* Indicator cards */
+    .indicator-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 20px 24px;
+      margin-bottom: 12px;
+      transition: border-color 0.15s;
+    }
+
+    .indicator-card:hover {
+      border-color: #484f58;
+    }
+
+    .card-top {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      margin-bottom: 10px;
+      gap: 16px;
+    }
+
+    .card-title-group { flex: 1; }
+
+    .card-title {
+      font-size: 16px;
+      font-weight: 700;
+      margin-bottom: 3px;
+    }
+
+    .card-subtitle {
+      font-size: 12px;
+      color: var(--muted);
+    }
+
+    .card-badges {
+      display: flex;
+      gap: 6px;
+      flex-shrink: 0;
+    }
+
+    .card-body {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin-top: 14px;
+    }
+
+    @media (max-width: 600px) {
+      .card-body { grid-template-columns: 1fr; }
+    }
+
+    .card-section {
+      background: var(--surface-2);
+      border-radius: 6px;
+      padding: 12px 14px;
+    }
+
+    .card-section-title {
+      font-size: 10px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: var(--muted);
+      margin-bottom: 6px;
+    }
+
+    .card-section p {
+      font-size: 13px;
+      color: var(--text);
+      line-height: 1.55;
+    }
+
+    /* Signal row */
+    .card-signals {
+      margin-top: 12px;
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .signal-item {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 12px;
+      border-radius: 6px;
+      font-size: 12px;
+    }
+
+    .signal-item.hawkish {
+      background: var(--hawkish-bg);
+      border: 1px solid rgba(248,81,73,0.25);
+      color: var(--hawkish);
+    }
+
+    .signal-item.dovish {
+      background: var(--dovish-bg);
+      border: 1px solid rgba(63,185,80,0.25);
+      color: var(--dovish);
+    }
+
+    .fred-id {
+      font-family: 'Courier New', monospace;
+      font-size: 11px;
+      color: var(--muted);
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      padding: 2px 6px;
+    }
+  </style>
+</head>
+<body>
+
+  <nav>
+    <div class="nav-brand">Macro<span>Sentinel</span></div>
+    <a href="/">Dashboard</a>
+    <a href="/indicators.html" class="active">Indicators</a>
+  </nav>
+
+  <main>
+    <div class="page-header">
+      <h1>Indicator Reference</h1>
+      <p>What each indicator measures, why the Fed watches it, and what the readings mean for rate decisions. Use this before FOMC meetings.</p>
+    </div>
+
+    <!-- Legend -->
+    <div class="legend-row">
+      <div class="legend-section">
+        <div class="legend-title">Timing Type</div>
+        <div class="legend-items">
+          <div class="legend-item"><span class="pill leading">Leading</span> Predicts future conditions</div>
+          <div class="legend-item"><span class="pill lagging">Lagging</span> Confirms what already happened</div>
+          <div class="legend-item"><span class="pill coincident">Coincident</span> Reflects current conditions</div>
+        </div>
+      </div>
+      <div class="legend-section">
+        <div class="legend-title">Fed Policy Signal</div>
+        <div class="legend-items">
+          <div class="legend-item"><span class="pill hawkish">🔴 Hawkish</span> Rate hike or hold pressure</div>
+          <div class="legend-item"><span class="pill neutral">🟡 Neutral</span> Mixed / no strong signal</div>
+          <div class="legend-item"><span class="pill dovish">🟢 Dovish</span> Rate cut more likely</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- GROUP: Inflation -->
+    <div class="group-header">Inflation</div>
+
+    <!-- CPI -->
+    <div class="indicator-card">
+      <div class="card-top">
+        <div class="card-title-group">
+          <div class="card-title">CPI — Consumer Price Index</div>
+          <div class="card-subtitle">Monthly | Bureau of Labor Statistics <span class="fred-id">CPIAUCSL</span></div>
+        </div>
+        <div class="card-badges">
+          <span class="pill lagging">Lagging</span>
+        </div>
+      </div>
+      <div class="card-body">
+        <div class="card-section">
+          <div class="card-section-title">What it measures</div>
+          <p>The average price change of a basket of ~80,000 goods and services bought by urban US consumers — food, housing, gas, healthcare, apparel, and more. Reported as year-over-year % change.</p>
+        </div>
+        <div class="card-section">
+          <div class="card-section-title">Why the Fed watches it</div>
+          <p>CPI is the headline number that markets and media react to most strongly. While the Fed targets PCE, a surprise CPI print moves markets instantly and shapes public inflation expectations — which then feed back into actual inflation.</p>
+        </div>
+      </div>
+      <div class="card-signals">
+        <div class="signal-item hawkish">🔴 Above 3%: Inflation running hot — rate cuts unlikely</div>
+        <div class="signal-item dovish">🟢 Below 2%: Inflation at or below target — rate cuts on the table</div>
+      </div>
+    </div>
+
+    <!-- Core CPI -->
+    <div class="indicator-card">
+      <div class="card-top">
+        <div class="card-title-group">
+          <div class="card-title">Core CPI — Excluding Food & Energy</div>
+          <div class="card-subtitle">Monthly | Bureau of Labor Statistics <span class="fred-id">CPILFESL</span></div>
+        </div>
+        <div class="card-badges">
+          <span class="pill lagging">Lagging</span>
+        </div>
+      </div>
+      <div class="card-body">
+        <div class="card-section">
+          <div class="card-section-title">What it measures</div>
+          <p>Same as CPI but with food and energy prices stripped out. Food and energy are volatile and driven by weather, wars, and supply shocks — things monetary policy can't fix. Core CPI isolates the "sticky" underlying inflation trend.</p>
+        </div>
+        <div class="card-section">
+          <div class="card-section-title">Why the Fed watches it</div>
+          <p>Core CPI is a cleaner signal than headline CPI. The Fed focuses heavily on "supercore" (services ex-housing) within this, because services inflation is driven by wages — which monetary policy can actually influence.</p>
+        </div>
+      </div>
+      <div class="card-signals">
+        <div class="signal-item hawkish">🔴 Above 3%: Sticky inflation — very unlikely to cut</div>
+        <div class="signal-item dovish">🟢 Below 2.5%: Trend in the right direction — opens door to cuts</div>
+      </div>
+    </div>
+
+    <!-- PCE -->
+    <div class="indicator-card">
+      <div class="card-top">
+        <div class="card-title-group">
+          <div class="card-title">PCE — Personal Consumption Expenditures</div>
+          <div class="card-subtitle">Monthly | Bureau of Economic Analysis <span class="fred-id">PCEPI</span></div>
+        </div>
+        <div class="card-badges">
+          <span class="pill lagging">Lagging</span>
+          <span class="pill hawkish" style="background:rgba(88,166,255,0.1);color:var(--accent);">Fed's Target</span>
+        </div>
+      </div>
+      <div class="card-body">
+        <div class="card-section">
+          <div class="card-section-title">What it measures</div>
+          <p>Inflation in spending by US households and non-profits, drawn from GDP accounts. Broader than CPI: covers what consumers <em>actually</em> spend (not a fixed basket), and adjusts when people substitute cheaper alternatives.</p>
+        </div>
+        <div class="card-section">
+          <div class="card-section-title">Why the Fed watches it</div>
+          <p>The Fed's 2% inflation target is <strong>PCE, not CPI</strong>. PCE typically runs about 0.2–0.4% below CPI. When Powell says "we're targeting 2% inflation," he means PCE. This is THE number that directly governs rate decisions.</p>
+        </div>
+      </div>
+      <div class="card-signals">
+        <div class="signal-item hawkish">🔴 Above 2.5%: Above target — Fed will hold or hike</div>
+        <div class="signal-item dovish">🟢 At or below 2%: At target — rate cuts justified</div>
+      </div>
+    </div>
+
+    <!-- PPI -->
+    <div class="indicator-card">
+      <div class="card-top">
+        <div class="card-title-group">
+          <div class="card-title">PPI — Producer Price Index</div>
+          <div class="card-subtitle">Monthly | Bureau of Labor Statistics <span class="fred-id">PPIFID</span></div>
+        </div>
+        <div class="card-badges">
+          <span class="pill leading">Leading</span>
+        </div>
+      </div>
+      <div class="card-body">
+        <div class="card-section">
+          <div class="card-section-title">What it measures</div>
+          <p>Prices received by domestic producers for their output — goods and services before they reach consumers. Measures cost pressures at the wholesale/manufacturing stage of the supply chain.</p>
+        </div>
+        <div class="card-section">
+          <div class="card-section-title">Why the Fed watches it</div>
+          <p>PPI leads CPI by roughly 1–3 months. When producers pay more for inputs, they eventually pass costs to consumers. A rising PPI warns of future CPI increases before they happen, giving the Fed a forward-looking inflation signal.</p>
+        </div>
+      </div>
+      <div class="card-signals">
+        <div class="signal-item hawkish">🔴 Rising PPI: Consumer price increases coming in 1–3 months</div>
+        <div class="signal-item dovish">🟢 Falling PPI: Input cost relief, likely to slow consumer inflation</div>
+      </div>
+    </div>
+
+    <!-- GROUP: Labor Market -->
+    <div class="group-header">Labor Market</div>
+
+    <!-- NFP -->
+    <div class="indicator-card">
+      <div class="card-top">
+        <div class="card-title-group">
+          <div class="card-title">NFP — Non-Farm Payrolls</div>
+          <div class="card-subtitle">Monthly | Bureau of Labor Statistics <span class="fred-id">PAYEMS</span></div>
+        </div>
+        <div class="card-badges">
+          <span class="pill lagging">Lagging</span>
+        </div>
+      </div>
+      <div class="card-body">
+        <div class="card-section">
+          <div class="card-section-title">What it measures</div>
+          <p>Total number of paid workers in the US economy, excluding farm employees (too seasonal to compare month-over-month), government, private household, and non-profit employees. The headline monthly jobs number.</p>
+        </div>
+        <div class="card-section">
+          <div class="card-section-title">Why the Fed watches it</div>
+          <p>The Fed has a "dual mandate": price stability AND maximum employment. Strong payrolls signal a tight labor market, which drives wage growth, which drives services inflation. Weak payrolls give the Fed cover to cut rates.</p>
+        </div>
+      </div>
+      <div class="card-signals">
+        <div class="signal-item hawkish">🔴 Above 200K: Labor market too strong — rate cuts pushed back</div>
+        <div class="signal-item dovish">🟢 Below 100K: Labor market cooling — strengthens case for cuts</div>
+      </div>
+    </div>
+
+    <!-- U6 -->
+    <div class="indicator-card">
+      <div class="card-top">
+        <div class="card-title-group">
+          <div class="card-title">Unemployment Rate (U6) — Broad Unemployment</div>
+          <div class="card-subtitle">Monthly | Bureau of Labor Statistics <span class="fred-id">U6RATE</span></div>
+        </div>
+        <div class="card-badges">
+          <span class="pill lagging">Lagging</span>
+        </div>
+      </div>
+      <div class="card-body">
+        <div class="card-section">
+          <div class="card-section-title">What it measures</div>
+          <p>The "real" unemployment rate. U3 (headline) counts people without jobs who are actively looking. U6 adds: discouraged workers (gave up looking) + people working part-time who want full-time work. Better captures true labor market slack.</p>
+        </div>
+        <div class="card-section">
+          <div class="card-section-title">Why the Fed watches it</div>
+          <p>U6 shows how much room exists before the labor market tightens further. A low U6 means workers have real bargaining power → wages rise → services inflation persists. A rising U6 signals weakening demand and justifies rate relief.</p>
+        </div>
+      </div>
+      <div class="card-signals">
+        <div class="signal-item hawkish">🔴 U6 below 7%: Very tight market — wage pressure likely persisting</div>
+        <div class="signal-item dovish">🟢 U6 above 8%: Meaningful slack — labor conditions supportive of cuts</div>
+      </div>
+    </div>
+
+    <!-- JOLTS -->
+    <div class="indicator-card">
+      <div class="card-top">
+        <div class="card-title-group">
+          <div class="card-title">JOLTS — Job Openings</div>
+          <div class="card-subtitle">Monthly (lagged ~6 weeks) | Bureau of Labor Statistics <span class="fred-id">JTSJOL</span></div>
+        </div>
+        <div class="card-badges">
+          <span class="pill leading">Leading</span>
+        </div>
+      </div>
+      <div class="card-body">
+        <div class="card-section">
+          <div class="card-section-title">What it measures</div>
+          <p>Total number of unfilled job positions across US employers on the last business day of each month. A direct measure of unmet labor demand — how urgently businesses want to hire.</p>
+        </div>
+        <div class="card-section">
+          <div class="card-section-title">Why the Fed watches it</div>
+          <p>When openings are high relative to unemployed workers, employers compete for talent → wages rise → services inflation increases. Jerome Powell famously cited the openings-to-unemployed ratio as a key measure of labor market tightness.</p>
+        </div>
+      </div>
+      <div class="card-signals">
+        <div class="signal-item hawkish">🔴 Above 9M: Extremely tight — strong wage pressure, rate cuts unlikely</div>
+        <div class="signal-item dovish">🟢 Below 7M: Openings normalizing — labor market less inflationary</div>
+      </div>
+    </div>
+
+    <!-- Average Hourly Earnings -->
+    <div class="indicator-card">
+      <div class="card-top">
+        <div class="card-title-group">
+          <div class="card-title">Average Hourly Earnings</div>
+          <div class="card-subtitle">Monthly | Bureau of Labor Statistics <span class="fred-id">CES0500000003</span></div>
+        </div>
+        <div class="card-badges">
+          <span class="pill coincident">Coincident</span>
+        </div>
+      </div>
+      <div class="card-body">
+        <div class="card-section">
+          <div class="card-section-title">What it measures</div>
+          <p>Average hourly wages for all private nonfarm employees. The absolute level matters for cost-of-living, but the Fed focuses on year-over-year % change as a measure of wage inflation pressure.</p>
+        </div>
+        <div class="card-section">
+          <div class="card-section-title">Why the Fed watches it</div>
+          <p>Wages are the dominant input cost in services industries (restaurants, healthcare, education). Services inflation is the stickiest kind — once wages go up, they rarely come back down, and businesses price accordingly. Wage growth above ~3.5% is incompatible with 2% services inflation.</p>
+        </div>
+      </div>
+      <div class="card-signals">
+        <div class="signal-item hawkish">🔴 YoY above 4%: Wage-driven inflation risk — Fed unlikely to cut</div>
+        <div class="signal-item dovish">🟢 YoY around 3–3.5%: Consistent with 2% inflation target</div>
+      </div>
+    </div>
+
+    <!-- GROUP: Growth -->
+    <div class="group-header">Economic Growth</div>
+
+    <!-- GDP -->
+    <div class="indicator-card">
+      <div class="card-top">
+        <div class="card-title-group">
+          <div class="card-title">GDP — Real Gross Domestic Product</div>
+          <div class="card-subtitle">Quarterly | Bureau of Economic Analysis <span class="fred-id">GDPC1</span></div>
+        </div>
+        <div class="card-badges">
+          <span class="pill lagging">Lagging</span>
+        </div>
+      </div>
+      <div class="card-body">
+        <div class="card-section">
+          <div class="card-section-title">What it measures</div>
+          <p>The total inflation-adjusted value of all goods and services produced in the US in a quarter, reported as Seasonally Adjusted Annual Rate (SAAR). The broadest single measure of economic output and health.</p>
+        </div>
+        <div class="card-section">
+          <div class="card-section-title">Why the Fed watches it</div>
+          <p>Strong GDP gives the Fed room to hold rates high without tipping into recession. Weak or negative GDP shifts the calculus: holding rates high risks recession, and the Fed must weigh the cost of its medicine against inflation progress.</p>
+        </div>
+      </div>
+      <div class="card-signals">
+        <div class="signal-item hawkish">🔴 Above 3%: Economy running hot — can absorb high rates</div>
+        <div class="signal-item dovish">🟢 Below 1% or negative: Recession risk — strong case for rate relief</div>
+      </div>
+    </div>
+
+    <!-- ISM PMI -->
+    <div class="indicator-card">
+      <div class="card-top">
+        <div class="card-title-group">
+          <div class="card-title">ISM PMI — Manufacturing Purchasing Managers Index</div>
+          <div class="card-subtitle">Monthly | Institute for Supply Management <span class="fred-id">NAPM</span></div>
+        </div>
+        <div class="card-badges">
+          <span class="pill leading">Leading</span>
+        </div>
+      </div>
+      <div class="card-body">
+        <div class="card-section">
+          <div class="card-section-title">What it measures</div>
+          <p>A survey of purchasing managers at ~400 manufacturing firms asking about new orders, production, employment, deliveries, and inventories. A diffusion index: above 50 = more companies expanding than contracting. Below 50 = contraction.</p>
+        </div>
+        <div class="card-section">
+          <div class="card-section-title">Why the Fed watches it</div>
+          <p>PMI is released the first business day of the month (before most other data). Purchasing managers make forward-looking buying decisions — their collective behavior predicts production, hiring, and growth 1–3 months ahead.</p>
+        </div>
+      </div>
+      <div class="card-signals">
+        <div class="signal-item hawkish">🔴 Above 55: Strong expansion — adding fuel to an already hot economy</div>
+        <div class="signal-item dovish">🟢 Below 47: Contraction — rising recession risk, dovish pivot likely</div>
+      </div>
+    </div>
+
+    <!-- Retail Sales -->
+    <div class="indicator-card">
+      <div class="card-top">
+        <div class="card-title-group">
+          <div class="card-title">Retail Sales</div>
+          <div class="card-subtitle">Monthly | Census Bureau <span class="fred-id">RSXFS</span></div>
+        </div>
+        <div class="card-badges">
+          <span class="pill coincident">Coincident</span>
+        </div>
+      </div>
+      <div class="card-body">
+        <div class="card-section">
+          <div class="card-section-title">What it measures</div>
+          <p>Total monthly sales at retail stores and food service establishments, excluding autos and gas (to reduce volatility). Directly measures consumer spending patterns — the largest driver of US economic output.</p>
+        </div>
+        <div class="card-section">
+          <div class="card-section-title">Why the Fed watches it</div>
+          <p>Consumer spending is ~70% of US GDP. When retail sales are strong, demand is pulling through the economy — creating both growth and inflationary pressure. A sharp drop in retail sales signals demand destruction, which could justify rate cuts to stimulate.</p>
+        </div>
+      </div>
+      <div class="card-signals">
+        <div class="signal-item hawkish">🔴 Accelerating MoM growth: Demand-driven inflation risk</div>
+        <div class="signal-item dovish">🟢 Declining or negative MoM: Consumer pulling back — rate cut supportive</div>
+      </div>
+    </div>
+
+    <!-- GROUP: Markets & Rates -->
+    <div class="group-header">Market Rates & Expectations</div>
+
+    <!-- 2Y Treasury -->
+    <div class="indicator-card">
+      <div class="card-top">
+        <div class="card-title-group">
+          <div class="card-title">2-Year Treasury Yield</div>
+          <div class="card-subtitle">Daily | US Treasury / FRED <span class="fred-id">DGS2</span></div>
+        </div>
+        <div class="card-badges">
+          <span class="pill leading">Leading</span>
+        </div>
+      </div>
+      <div class="card-body">
+        <div class="card-section">
+          <div class="card-section-title">What it measures</div>
+          <p>The annualized return on 2-year US government bonds. Because these bonds mature in 2 years, investors price their expectations of where interest rates will be over that period directly into the yield. It's the bond market's forecast of Fed policy.</p>
+        </div>
+        <div class="card-section">
+          <div class="card-section-title">Why the Fed watches it</div>
+          <p>The 2Y yield is the most Fed-sensitive bond in the market. Unlike 10Y or 30Y yields (which also price in growth and term premium), the 2Y is almost entirely about near-term rate expectations. When the 2Y falls sharply, the market is pricing in imminent rate cuts — a signal the Fed takes seriously.</p>
+        </div>
+      </div>
+      <div class="card-signals">
+        <div class="signal-item hawkish">🔴 Above 4.5%: Market expects rates to stay high — hawkish regime</div>
+        <div class="signal-item dovish">🟢 Below 3.5%: Market pricing in significant rate cuts ahead</div>
+      </div>
+    </div>
+
+    <!-- Fed Funds Rate -->
+    <div class="indicator-card">
+      <div class="card-top">
+        <div class="card-title-group">
+          <div class="card-title">Fed Funds Rate (Effective)</div>
+          <div class="card-subtitle">Daily | Federal Reserve <span class="fred-id">EFFR</span></div>
+        </div>
+        <div class="card-badges">
+          <span class="pill coincident">Coincident</span>
+        </div>
+      </div>
+      <div class="card-body">
+        <div class="card-section">
+          <div class="card-section-title">What it measures</div>
+          <p>The actual overnight interest rate at which US banks lend reserves to each other. This is the rate the FOMC directly sets via its target range. The "effective" rate is the volume-weighted average of actual overnight transactions.</p>
+        </div>
+        <div class="card-section">
+          <div class="card-section-title">Why the Fed watches it</div>
+          <p>This IS the policy rate — the primary instrument the Fed uses to influence all other interest rates in the economy. Mortgages, auto loans, credit cards, business borrowing, and the 2Y Treasury all respond to where this rate sits. It's the benchmark for all other context in this dashboard.</p>
+        </div>
+      </div>
+      <div class="card-signals">
+        <div class="signal-item hawkish">🔴 Above 4.5%: Restrictive monetary policy — economy under rate pressure</div>
+        <div class="signal-item dovish">🟢 Below 3%: Accommodative — stimulating growth and risk-taking</div>
+      </div>
+    </div>
+
+  </main>
+</body>
+</html>
