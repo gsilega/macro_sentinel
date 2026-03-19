@@ -42,7 +42,10 @@
 //   Real (inflation-adjusted) output. Quarterly, reported as SAAR.
 //   Lagging. Strong GDP means the economy can absorb high rates. Weak GDP = cut pressure.
 //
-// ISM PMI (ISMMAN)
+// Industrial Production (INDPRO)
+//   Fed's own monthly index of manufacturing/mining/utilities output. YoY % change.
+//   Coincident. Replaces ISM PMI (not freely available on FRED).
+//   >2% YoY = expansion; <-1% = contraction, recession risk rising.
 //   Purchasing managers survey. >50 = expansion, <50 = contraction.
 //   Leading. Falls below 50 → recession risk rising → Fed shifts dovish.
 //
@@ -128,9 +131,11 @@ async fn poll_all_indicators(
 fn fred_units(id: IndicatorId) -> Option<&'static str> {
     match id {
         // Index levels → need YoY percent change
-        IndicatorId::Cpi | IndicatorId::CoreCpi | IndicatorId::Pce | IndicatorId::Ppi => {
-            Some("pc1")
-        }
+        IndicatorId::Cpi
+        | IndicatorId::CoreCpi
+        | IndicatorId::Pce
+        | IndicatorId::Ppi
+        | IndicatorId::IsmPmi => Some("pc1"),
         // Total employed (level) → need monthly change in thousands
         IndicatorId::Nfp => Some("chg"),
         // Quarterly level → need annualized growth rate
@@ -214,7 +219,8 @@ fn format_display_value(id: IndicatorId, value: f64) -> String {
         IndicatorId::Jolts => format!("{:.2}M", value / 1_000.0),
         IndicatorId::AverageHourlyEarnings => format!("${:.2}/hr", value),
         IndicatorId::Gdp => format!("{:.1}% SAAR", value),
-        IndicatorId::IsmPmi => format!("{:.1}", value),
-        IndicatorId::RetailSales => format!("${:.0}M", value),
+        IndicatorId::IsmPmi => format!("{:.1}% YoY", value),
+        // RSXFS is in millions — convert to billions for readability
+        IndicatorId::RetailSales => format!("${:.1}B", value / 1_000.0),
     }
 }

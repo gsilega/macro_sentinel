@@ -2,6 +2,8 @@
 
 A real-time macroeconomic sentiment dashboard that tracks key Federal Reserve policy indicators and uses AI to interpret what they mean for the Fed's next rate decision.
 
+![Macro Sentinel Dashboard](screenshots/0.0.0.0_3000_.png)
+
 ## What it does
 
 - Polls the [FRED API](https://fred.stlouisfed.org/) every 5 minutes for 13 macroeconomic indicators
@@ -22,7 +24,7 @@ A real-time macroeconomic sentiment dashboard that tracks key Federal Reserve po
 | JOLTS Job Openings | JTSJOL | Leading |
 | Avg Hourly Earnings | CES0500000003 | Coincident |
 | GDP (Real) | GDPC1 | Lagging |
-| ISM PMI | NAPM | Leading |
+| Industrial Production | INDPRO | Coincident |
 | Retail Sales | RSXFS | Coincident |
 | 2Y Treasury Yield | DGS2 | Leading |
 | Fed Funds Rate | EFFR | Coincident |

@@ -14,8 +14,12 @@ use tracing::{debug, info};
 
 use crate::state::AppState;
 
-/// Push interval in seconds. Independent from the FRED poll interval.
+/// How often to push state updates to connected clients.
 const WS_PUSH_INTERVAL_SECS: u64 = 10;
+
+/// How often to send a server-initiated ping to keep the connection alive.
+/// Browsers and proxies will drop idle WebSocket connections without a heartbeat.
+const WS_PING_INTERVAL_SECS: u64 = 30;
 
 /// Public entry point called from routes.rs. Delegates to the internal handler.
 pub async fn handle_socket_direct(socket: WebSocket, state: Arc<RwLock<AppState>>) {
@@ -32,14 +36,23 @@ async fn handle_socket(mut socket: WebSocket, state: Arc<RwLock<AppState>>) {
         return;
     }
 
-    let mut interval = tokio::time::interval(Duration::from_secs(WS_PUSH_INTERVAL_SECS));
-    interval.tick().await; // consume the first tick (fires immediately)
+    let mut push_interval = tokio::time::interval(Duration::from_secs(WS_PUSH_INTERVAL_SECS));
+    push_interval.tick().await; // consume the first immediate tick
+
+    let mut ping_interval = tokio::time::interval(Duration::from_secs(WS_PING_INTERVAL_SECS));
+    ping_interval.tick().await; // consume the first immediate tick
 
     loop {
         tokio::select! {
-            _ = interval.tick() => {
+            _ = push_interval.tick() => {
                 if let Err(e) = send_state_update(&mut socket, &state).await {
                     debug!("WebSocket send failed: {}", e);
+                    break;
+                }
+            }
+
+            _ = ping_interval.tick() => {
+                if socket.send(Message::Ping(vec![].into())).await.is_err() {
                     break;
                 }
             }

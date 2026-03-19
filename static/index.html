@@ -497,7 +497,30 @@
     // AI Interpretation
     // =========================================================
     function renderAI(text) {
-      document.getElementById('ai-text').textContent = text;
+      document.getElementById('ai-text').innerHTML = markdownToHtml(text);
+    }
+
+    function markdownToHtml(text) {
+      return text
+        // Escape HTML first to prevent XSS
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        // Bold: **text**
+        .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+        // Italic: *text*
+        .replace(/\*(.+?)\*/g, '<em>$1</em>')
+        // Numbered list items: lines starting with "1. " "2. " etc
+        .replace(/^(\d+)\.\s+(.+)$/gm, '<li>$2</li>')
+        // Wrap consecutive <li> blocks in <ol>
+        .replace(/(<li>.*<\/li>\n?)+/g, '<ol>$&</ol>')
+        // Blank lines become paragraph breaks
+        .replace(/\n{2,}/g, '</p><p>')
+        // Single newlines become line breaks
+        .replace(/\n/g, '<br>')
+        // Wrap the whole thing in a paragraph
+        .replace(/^/, '<p>')
+        .replace(/$/, '</p>');
     }
 
     async function requestInterpretation() {

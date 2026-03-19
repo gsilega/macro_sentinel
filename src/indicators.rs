@@ -45,8 +45,9 @@ impl IndicatorId {
             IndicatorId::AverageHourlyEarnings => "CES0500000003",
             // Real GDP — quarterly output; context for how much rate pressure the economy can absorb
             IndicatorId::Gdp => "GDPC1",
-            // ISM PMI — >50 expansion, <50 contraction; leading signal on business activity
-            IndicatorId::IsmPmi => "ISMMAN",
+            // Industrial Production — Fed's own monthly manufacturing output index (YoY %)
+            // Replaces ISM PMI which is not freely available on FRED
+            IndicatorId::IsmPmi => "INDPRO",
             // Retail Sales ex-autos/gas — direct measure of consumer demand (~70% of GDP)
             IndicatorId::RetailSales => "RSXFS",
             // 2Y Treasury Yield — most Fed-sensitive bond; tracks near-term rate expectations
@@ -68,7 +69,7 @@ impl IndicatorId {
             IndicatorId::Jolts => "JOLTS Job Openings",
             IndicatorId::AverageHourlyEarnings => "Avg Hourly Earnings",
             IndicatorId::Gdp => "GDP (Real)",
-            IndicatorId::IsmPmi => "ISM PMI",
+            IndicatorId::IsmPmi => "Industrial Production",
             IndicatorId::RetailSales => "Retail Sales",
             IndicatorId::TwoYearTreasuryYield => "2Y Treasury Yield",
             IndicatorId::FedFundsFutures => "Fed Funds Rate",
@@ -85,7 +86,7 @@ impl IndicatorId {
             IndicatorId::Jolts => "M openings",
             IndicatorId::AverageHourlyEarnings => "$/hr",
             IndicatorId::Gdp => "% SAAR",
-            IndicatorId::IsmPmi => "index",
+            IndicatorId::IsmPmi => "% YoY",
             IndicatorId::RetailSales => "$M",
             IndicatorId::TwoYearTreasuryYield => "%",
             IndicatorId::FedFundsFutures => "%",
@@ -221,10 +222,11 @@ pub fn classify_sentiment(id: IndicatorId, value: f64) -> Sentiment {
                 Sentiment::Neutral
             }
         }
+        // Industrial Production YoY %: >2% = expansion, <-1% = contraction
         IndicatorId::IsmPmi => {
-            if value > 55.0 {
+            if value > 2.0 {
                 Sentiment::Hawkish
-            } else if value < 47.0 {
+            } else if value < -1.0 {
                 Sentiment::Dovish
             } else {
                 Sentiment::Neutral
